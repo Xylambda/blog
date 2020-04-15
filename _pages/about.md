@@ -4,7 +4,7 @@ title: About Me
 permalink: /about/
 ---
 
-I'm Alejandro, a Junior Data Scienctist.
+I'm Alejandro, a Junior Data Scientist.
 
 I am currently working as quantitative researcher, developing mathematical models to understand
 the FX market.
