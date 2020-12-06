@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>5 tips for working with time series in Python | Alejandro PS</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="5 tips for working with time series in Python" />
+<meta name="author" content="Alejandro PS" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="At some point in his/her career, any Data Scientist has to be able to manipulate time series data. I have been working as a Data Scientist and Quant Researcher for the last 14 months and I found little “cooking tips” for working with this type of data. Today, I would like to share some of those tips." />
+<meta property="og:description" content="At some point in his/her career, any Data Scientist has to be able to manipulate time series data. I have been working as a Data Scientist and Quant Researcher for the last 14 months and I found little “cooking tips” for working with this type of data. Today, I would like to share some of those tips." />
+<link rel="canonical" href="https://xylambda.github.io/blog/python/numpy/pandas/2020/12/06/ts_tips.html" />
+<meta property="og:url" content="https://xylambda.github.io/blog/python/numpy/pandas/2020/12/06/ts_tips.html" />
+<meta property="og:site_name" content="Alejandro PS" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-12-06T00:00:00-06:00" />
+<script type="application/ld+json">
+{"datePublished":"2020-12-06T00:00:00-06:00","dateModified":"2020-12-06T00:00:00-06:00","author":{"@type":"Person","name":"Alejandro PS"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://xylambda.github.io/blog/python/numpy/pandas/2020/12/06/ts_tips.html"},"description":"At some point in his/her career, any Data Scientist has to be able to manipulate time series data. I have been working as a Data Scientist and Quant Researcher for the last 14 months and I found little “cooking tips” for working with this type of data. Today, I would like to share some of those tips.","@type":"BlogPosting","url":"https://xylambda.github.io/blog/python/numpy/pandas/2020/12/06/ts_tips.html","headline":"5 tips for working with time series in Python","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://xylambda.github.io/blog/feed.xml" title="Alejandro PS" /><link rel="shortcut icon" type="image/x-icon" href="/blog/images/favicon.ico"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>5 tips for working with time series in Python | Alejandro PS</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="5 tips for working with time series in Python" />
+<meta name="author" content="Alejandro PS" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="At some point in his/her career, any Data Scientist has to be able to manipulate time series data. I have been working as a Data Scientist and Quant Researcher for the last 14 months and I found little “cooking tips” for working with this type of data. Today, I would like to share some of those tips." />
+<meta property="og:description" content="At some point in his/her career, any Data Scientist has to be able to manipulate time series data. I have been working as a Data Scientist and Quant Researcher for the last 14 months and I found little “cooking tips” for working with this type of data. Today, I would like to share some of those tips." />
+<link rel="canonical" href="https://xylambda.github.io/blog/python/numpy/pandas/2020/12/06/ts_tips.html" />
+<meta property="og:url" content="https://xylambda.github.io/blog/python/numpy/pandas/2020/12/06/ts_tips.html" />
+<meta property="og:site_name" content="Alejandro PS" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-12-06T00:00:00-06:00" />
+<script type="application/ld+json">
+{"datePublished":"2020-12-06T00:00:00-06:00","dateModified":"2020-12-06T00:00:00-06:00","author":{"@type":"Person","name":"Alejandro PS"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://xylambda.github.io/blog/python/numpy/pandas/2020/12/06/ts_tips.html"},"description":"At some point in his/her career, any Data Scientist has to be able to manipulate time series data. I have been working as a Data Scientist and Quant Researcher for the last 14 months and I found little “cooking tips” for working with this type of data. Today, I would like to share some of those tips.","@type":"BlogPosting","url":"https://xylambda.github.io/blog/python/numpy/pandas/2020/12/06/ts_tips.html","headline":"5 tips for working with time series in Python","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+<link href="https://unpkg.com/@primer/css/dist/primer.css" rel="stylesheet" />
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css"><link type="application/atom+xml" rel="alternate" href="https://xylambda.github.io/blog/feed.xml" title="Alejandro PS" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css" integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous">
+    <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML"> </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js" integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head><body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/blog/">Alejandro PS</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/blog/about/">About Me</a><a class="page-link" href="/blog/search/">Search</a><a class="page-link" href="/blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">5 tips for working with time series in Python</h1><p class="page-description">At some point in his/her career, any Data Scientist has to be able to manipulate time series data. I have been working as a Data Scientist and Quant Researcher for the last 14 months and I found little “cooking tips” for working with this type of data. Today, I would like to share some of those tips.</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2020-12-06T00:00:00-06:00" itemprop="datePublished">
+        Dec 6, 2020
+      </time>• 
+          <span itemprop="author" itemscope itemtype="http://schema.org/Person">
+            <span class="p-author h-card" itemprop="name">Alejandro PS</span></span>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      8 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/blog/categories/#python">python</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blog/categories/#numpy">numpy</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blog/categories/#pandas">pandas</a>
+        
+      
+      </p>
+    
+
+    
+      
+        <div class="pb-5 d-flex flex-wrap flex-justify-end">
+          <div class="px-2">
+
+    <a href="https://github.com/Xylambda/blog/tree/master/_notebooks/2020-12-06-ts_tips.ipynb" role="button" target="_blank">
+<img class="notebook-badge-image" src="/blog/assets/badges/github.svg" alt="View On GitHub">
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://mybinder.org/v2/gh/Xylambda/blog/master?filepath=_notebooks%2F2020-12-06-ts_tips.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/blog/assets/badges/binder.svg" alt="Open In Binder"/>
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://colab.research.google.com/github/Xylambda/blog/blob/master/_notebooks/2020-12-06-ts_tips.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/blog/assets/badges/colab.svg" alt="Open In Colab"/>
+    </a>
+</div>
+        </div>
+      </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h2"><a href="#Required-knowledge">Required knowledge </a></li>
+<li class="toc-entry toc-h2"><a href="#Removing-noise-with-the-Fourier-Transform">Removing noise with the Fourier Transform </a>
+<ul>
+<li class="toc-entry toc-h3"><a href="# 2.1.-The-code"> 2.1. The code </a></li>
+<li class="toc-entry toc-h3"><a href="#Usage-example">Usage example </a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#Removing-noise-with-the-Kalman-Filter">Removing noise with the Kalman Filter </a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#3.1.-The-code">3.1. The code </a></li>
+<li class="toc-entry toc-h3"><a href="#3.2.-Example">3.2. Example </a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#Dealing-with-Outliers">Dealing with Outliers </a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#The-code">The code </a></li>
+<li class="toc-entry toc-h3"><a href="#Example">Example </a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#The-right-way-to-normalize-time-series-data.">The right way to normalize time series data. </a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#The-code">The code </a></li>
+<li class="toc-entry toc-h3"><a href="#Example">Example </a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#A-flexible-way-to-compute-returns.">A flexible way to compute returns. </a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#The-code">The code </a></li>
+<li class="toc-entry toc-h3"><a href="#Example">Example </a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#References">References </a></li>
+</ul><!--
+#################################################
+### THIS FILE WAS AUTOGENERATED! DO NOT EDIT! ###
+#################################################
+# file to edit: _notebooks/2020-12-06-ts_tips.ipynb
+-->
+
+<div class="container" id="notebook-container">
+        
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><em>This is a repost from my medium article <a href="https://alejandrops.medium.com/5-tips-for-working-with-time-series-in-python-d889109e676d">5 tips for working with time series in Python</a></em></p>
+<hr>
+<h2 id="Required-knowledge">
+<a class="anchor" href="#Required-knowledge" aria-hidden="true"><span class="octicon octicon-link"></span></a>Required knowledge<a class="anchor-link" href="#Required-knowledge"> </a>
+</h2>
+<p>This post is pretty easy to follow if you already have some basic knowledge of Pandas, NumPy and Python. I will not go into much details with the theoretical stuff but use the resources at the end or ask a question if you need clarification about some particular concept.</p>
+<h2 id="Removing-noise-with-the-Fourier-Transform">
+<a class="anchor" href="#Removing-noise-with-the-Fourier-Transform" aria-hidden="true"><span class="octicon octicon-link"></span></a>Removing noise with the Fourier Transform<a class="anchor-link" href="#Removing-noise-with-the-Fourier-Transform"> </a>
+</h2>
+<p>It is often the case that we need to study the underlying process that drives a particular time series. To do that, we may want to remove the noise of the time series and analyze the signal.</p>
+<p>The Fourier Transform can help us achieve this objective. By moving our time series from the time domain to the frequency domain, we can filter out the frequencies that pollute the data. Then, we just have to apply the inverse Fourier transform to get a filtered version of our time series.</p>
+<p><em>Note: the code presented in this section is a slightly modified version of Steven L. Brunton code. See References section to find the original code and explanation.</em></p>
+<h3 id=" 2.1.-The-code">
+<a class="anchor" href="#%C2%A02.1.-The-code" aria-hidden="true"><span class="octicon octicon-link"></span></a> 2.1. The code<a class="anchor-link" href="#%C2%A02.1.-The-code"> </a>
+</h3>
+<p>The following gist contains the necessary code to remove the noise using the Fourier Transform:</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">fft_denoiser</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_components</span><span class="p">,</span> <span class="n">to_real</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">"""Fast fourier transform denoiser.</span>
+<span class="sd">    </span>
+<span class="sd">    Denoises data using the fast fourier transform.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : numpy.array</span>
+<span class="sd">        The data to denoise.</span>
+<span class="sd">    n_components : int</span>
+<span class="sd">        The value above which the coefficients will be kept.</span>
+<span class="sd">    to_real : bool, optional, default: True</span>
+<span class="sd">        Whether to remove the complex part (True) or not (False)</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    clean_data : numpy.array</span>
+<span class="sd">        The denoised data.</span>
+<span class="sd">        </span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [1] Steve Brunton - Denoising Data with FFT[Python]</span>
+<span class="sd">       https://www.youtube.com/watch?v=s2K1JfNR7Sc&amp;ab_channel=SteveBrunton</span>
+<span class="sd">    </span>
+<span class="sd">    """</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    
+    <span class="c1"># compute the fft</span>
+    <span class="n">fft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    
+    <span class="c1"># compute power spectrum density</span>
+    <span class="c1"># squared magnitud of each fft coefficient</span>
+    <span class="n">PSD</span> <span class="o">=</span> <span class="n">fft</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">fft</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span>
+    
+    <span class="c1"># keep high frequencies</span>
+    <span class="n">_mask</span> <span class="o">=</span> <span class="n">PSD</span> <span class="o">&gt;</span> <span class="n">n_components</span>
+    <span class="n">fft</span> <span class="o">=</span> <span class="n">_mask</span> <span class="o">*</span> <span class="n">fft</span>
+    
+    <span class="c1"># inverse fourier transform</span>
+    <span class="n">clean_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">fft</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">to_real</span><span class="p">:</span>
+        <span class="n">clean_data</span> <span class="o">=</span> <span class="n">clean_data</span><span class="o">.</span><span class="n">real</span>
+    
+    <span class="k">return</span> <span class="n">clean_data</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Usage-example">
+<a class="anchor" href="#Usage-example" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage example<a class="anchor-link" href="#Usage-example"> </a>
+</h3>
+<p><img src="/blog/images/copied_from_nb/img/5tips_ts/fourier.png" alt=""></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Removing-noise-with-the-Kalman-Filter">
+<a class="anchor" href="#Removing-noise-with-the-Kalman-Filter" aria-hidden="true"><span class="octicon octicon-link"></span></a>Removing noise with the Kalman Filter<a class="anchor-link" href="#Removing-noise-with-the-Kalman-Filter"> </a>
+</h2>
+<p>With the Fourier Transform we obtain the frequencies that exist in a given time series, but we do not have any information of when these frequencies occur in time. This means that, in its basic form, the Fourier Transform is not the best choice for non-stationary time series.</p>
+<p>For example, financial time series are considered non-stationary (although any attempt <a href="https://towardsdatascience.com/non-stationarity-and-memory-in-financial-markets-fcef1fe76053">to prove it statistically is doomed</a>), thus making Fourier a bad choice.</p>
+<p>At this point, we can choose to apply the Fourier Transform in a rolling-basis or to go with a <a href="http://users.rowan.edu/~polikar/WTpart1.html">Wavelet Transform</a>. But there is a much more interesting algorithm <strong>called Kalman Filter</strong>.</p>
+<p>The <a href="https://www.cs.unc.edu/~welch/media/pdf/kalman_intro.pdf">Kalman Filter</a> is essentially a <a href="https://users.aalto.fi/~ssarkka/pub/cup_book_online_20131111.pdf">Bayesian Linear Regression</a> that can optimally estimate the hidden state of a process using its observable variables.</p>
+<p>By carefully selecting the right parameters, one can tweak the algorithm to extract the underlying signal.</p>
+<h3 id="3.1.-The-code">
+<a class="anchor" href="#3.1.-The-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>3.1. The code<a class="anchor-link" href="#3.1.-The-code"> </a>
+</h3>
+<p><a href="https://github.com/Xylambda/kalmanfilter">I created a small library</a> that contains a univariate Kalman Filter that can be used to extract the signal. In the README you will find the particular set of parameters I used. You can also use <a href="https://pykalman.github.io/">PyKalman</a>.</p>
+<h3 id="3.2.-Example">
+<a class="anchor" href="#3.2.-Example" aria-hidden="true"><span class="octicon octicon-link"></span></a>3.2. Example<a class="anchor-link" href="#3.2.-Example"> </a>
+</h3>
+<p><img src="/blog/images/copied_from_nb/img/5tips_ts/kalman.png" alt=""></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Dealing-with-Outliers">
+<a class="anchor" href="#Dealing-with-Outliers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dealing with Outliers<a class="anchor-link" href="#Dealing-with-Outliers"> </a>
+</h2>
+<p>Outliers are usually undesirable because they deeply affect our conclusions if we are not careful when dealing with them. For example, the Pearson correlation formula can have a very different result if there are large enough outliers in our data.</p>
+<p>Outlier analysis and filtering in time series requires a more sophisticated approach than in normal data, since <strong>you cannot use future information to filter past outliers.</strong></p>
+<p>One quick way to remove outliers is doing it in a rolling/expanding basis. A common algorithm to find outliers is computing the mean and standard deviation of our data and check which values are n standard deviations above or below the mean (typically, n is set to 3). Those values are then marked as outliers.</p>
+<h3 id="The-code">
+<a class="anchor" href="#The-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>The code<a class="anchor-link" href="#The-code"> </a>
+</h3>
+<p>The following code allows you to filter outliers using the aforementioned algorithm but in rolling or expanding mode to avoid <a href="https://corporatefinanceinstitute.com/resources/knowledge/finance/look-ahead-bias/">look-ahead bias</a>.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">basic_filter</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">'rolling'</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">262</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="sd">"""Basic Filter.</span>
+<span class="sd">    </span>
+<span class="sd">    Mark as outliers the points that are out of the interval:</span>
+<span class="sd">    (mean - threshold * std, mean + threshold * std ).</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : pandas.Series</span>
+<span class="sd">        The time series to filter.</span>
+<span class="sd">    mode : str, optional, default: 'rolling'</span>
+<span class="sd">        Whether to filter in rolling or expanding basis.</span>
+<span class="sd">    window : int, optional, default: 262</span>
+<span class="sd">        The number of periods to compute the mean and standard</span>
+<span class="sd">        deviation.</span>
+<span class="sd">    threshold : int, optional, default: 3</span>
+<span class="sd">        The number of standard deviations above the mean.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    series : pandas.DataFrame</span>
+<span class="sd">        Original series and marked outliers.</span>
+<span class="sd">    """</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Type must be of pandas.Series but </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2"> was passed."</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">),</span> <span class="n">msg</span>
+    
+    <span class="n">series</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    
+    <span class="c1"># rolling/expanding objects</span>
+    <span class="n">pd_object</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">series</span><span class="p">,</span> <span class="n">mode</span><span class="p">)(</span><span class="n">window</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
+    <span class="n">mean</span> <span class="o">=</span> <span class="n">pd_object</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">std</span> <span class="o">=</span> <span class="n">pd_object</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+    
+    <span class="n">upper_bound</span> <span class="o">=</span> <span class="n">mean</span> <span class="o">+</span> <span class="n">threshold</span> <span class="o">*</span> <span class="n">std</span>
+    <span class="n">lower_bound</span> <span class="o">=</span> <span class="n">mean</span> <span class="o">-</span> <span class="n">threshold</span> <span class="o">*</span> <span class="n">std</span>
+    
+    <span class="n">outliers</span> <span class="o">=</span> <span class="o">~</span><span class="n">series</span><span class="o">.</span><span class="n">between</span><span class="p">(</span><span class="n">lower_bound</span><span class="p">,</span> <span class="n">upper_bound</span><span class="p">)</span>
+    <span class="c1"># fill false positives with 0</span>
+    <span class="n">outliers</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="n">window</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">window</span><span class="p">)</span>
+    
+    <span class="n">series</span> <span class="o">=</span> <span class="n">series</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+    <span class="n">series</span><span class="p">[</span><span class="s1">'outliers'</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">outliers</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'int'</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">series</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'Close'</span><span class="p">,</span> <span class="s1">'Outliers'</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">series</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Example">
+<a class="anchor" href="#Example" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example<a class="anchor-link" href="#Example"> </a>
+</h3>
+<p>Playing with the parameters you can fine-tune your analysis. Here is an example using the default values of the function.</p>
+<p><img src="/blog/images/copied_from_nb/img/5tips_ts/outliers.png" alt=""></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="The-right-way-to-normalize-time-series-data.">
+<a class="anchor" href="#The-right-way-to-normalize-time-series-data." aria-hidden="true"><span class="octicon octicon-link"></span></a>The right way to normalize time series data.<a class="anchor-link" href="#The-right-way-to-normalize-time-series-data."> </a>
+</h2>
+<p>Many posts use the classical fit-transform approach with time series as if they could be treated as normal data. As with outliers, you cannot use future information to normalize data from the past unless you are 100% sure the values you are using to normalize are constant over time.</p>
+<p>The right way to normalize time series is in a rolling/expanding basis.</p>
+<h3 id="The-code">
+<a class="anchor" href="#The-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>The code<a class="anchor-link" href="#The-code"> </a>
+</h3>
+<p>I used Sklearn API to create a class that allows you to normalize data avoiding look-ahead bias. Because it inherits BaseEstimator and TransformerMixin it is possible to embed this class in a Sklearn pipeline.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">sklearn.base</span> <span class="kn">import</span> <span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">TransformerMixin</span>
+
+
+<span class="k">class</span> <span class="nc">RollingStandardScaler</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">TransformerMixin</span><span class="p">):</span>
+    <span class="sd">"""Rolling standard Scaler</span>
+<span class="sd">    </span>
+<span class="sd">    Standardized the given data series using the mean and std </span>
+<span class="sd">    commputed in rolling or expanding mode.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    window : int</span>
+<span class="sd">        Number of periods to compute the mean and std.</span>
+<span class="sd">    mode : str, optional, default: 'rolling'</span>
+<span class="sd">        Mode </span>
+<span class="sd">        </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pd_object : pandas.Rolling</span>
+<span class="sd">        Pandas window object.</span>
+<span class="sd">    w_mean : pandas.Series</span>
+<span class="sd">        Series of mean values.</span>
+<span class="sd">    w_std : pandas.Series</span>
+<span class="sd">        Series of std. values.</span>
+<span class="sd">    """</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">'rolling'</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">window</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+        
+        <span class="c1"># to fill in code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pd_object</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_mean</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_std</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fitted__</span> <span class="o">=</span> <span class="kc">False</span>
+        
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"RollingStandardScaler(window=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="si">}</span><span class="s2">, mode=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="si">}</span><span class="s2">)"</span>
+        
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">"""Fits.</span>
+<span class="sd">        </span>
+<span class="sd">        Computes the mean and std to be used for later scaling.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : array-like of shape (n_shape, n_features)</span>
+<span class="sd">            The data used to compute the per-feature mean and std. Used for</span>
+<span class="sd">            later scaling along the feature axis.</span>
+<span class="sd">        y</span>
+<span class="sd">            Ignored.</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pd_object</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pd_object</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_std</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pd_object</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fitted__</span> <span class="o">=</span> <span class="kc">True</span>
+        
+        <span class="k">return</span> <span class="bp">self</span>
+    
+    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">"""Transforms.</span>
+<span class="sd">        </span>
+<span class="sd">        Scale features of X according to the window mean and standard </span>
+<span class="sd">        deviation.</span>
+<span class="sd">        </span>
+<span class="sd">        Paramaters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : array-like of shape (n_shape, n_features)</span>
+<span class="sd">            Input data that will be transformed.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        standardized : array-like of shape (n_shape, n_features)</span>
+<span class="sd">            Transformed data.</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_fitted</span><span class="p">()</span>
+        
+        <span class="n">standardized</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">standardized</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_mean</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_std</span>
+    
+    <span class="k">def</span> <span class="nf">inverse_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">"""Inverse transform</span>
+<span class="sd">        </span>
+<span class="sd">        Undo the transform operation</span>
+<span class="sd">        </span>
+<span class="sd">        Paramaters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X : array-like of shape (n_shape, n_features)</span>
+<span class="sd">            Input data that will be transformed.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        standardized : array-like of shape (n_shape, n_features)</span>
+<span class="sd">            Transformed (original) data.</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_fitted</span><span class="p">()</span>
+        
+        <span class="n">unstandardized</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">return</span>  <span class="p">(</span><span class="n">unstandardized</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_std</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_mean</span>
+        
+    <span class="k">def</span> <span class="nf">_check_fitted</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">""" Checks if the algorithm is fitted. """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fitted__</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Please, fit the algorithm first."</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Example">
+<a class="anchor" href="#Example" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example<a class="anchor-link" href="#Example"> </a>
+</h3>
+<p><img src="/blog/images/copied_from_nb/img/5tips_ts/normalization.png" alt=""></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="A-flexible-way-to-compute-returns.">
+<a class="anchor" href="#A-flexible-way-to-compute-returns." aria-hidden="true"><span class="octicon octicon-link"></span></a>A flexible way to compute returns.<a class="anchor-link" href="#A-flexible-way-to-compute-returns."> </a>
+</h2>
+<p>The last tip is focused on quantitative analysis of financial time series. Working with returns is the first thing you learn as a quant researcher. Hence, it is necessary to have a basic framework to quickly compute log and arithmetic returns in different periods of time.</p>
+<p>Also, when filtering financial time series, the ideal procedure filters returns first and then goes back to prices. So you are free to add this step to the code from section 4.</p>
+<h3 id="The-code">
+<a class="anchor" href="#The-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>The code<a class="anchor-link" href="#The-code"> </a>
+</h3>
+<p>The following gist contains a basic framework to compute returns</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="sd">""" Utils functions. """</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+
+<span class="k">def</span> <span class="nf">compute_returns</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">"""Computes returns.</span>
+
+<span class="sd">    Calculates the returns of a given dataframe for the given period. The </span>
+<span class="sd">    returns can be computed as log returns or as arithmetic returns</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : pandas.DataFrame or pandas.Series</span>
+<span class="sd">        The data to calculate returns of.</span>
+<span class="sd">    periods : int</span>
+<span class="sd">        The period difference to compute returns.</span>
+<span class="sd">    log : bool, optional, default: False</span>
+<span class="sd">        Whether to compute log returns (True) or not (False).</span>
+<span class="sd">    relative : bool, optional, default: True</span>
+<span class="sd">        Whether to compute relative returns (True) or not </span>
+<span class="sd">        (False).</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ret : pandas.DataFrame or pandas.Series</span>
+<span class="sd">        The computed returns.</span>
+<span class="sd">    </span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">relative</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Log returns are relative by definition."</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">_log_returns</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">periods</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">_arithmetic_returns</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">periods</span><span class="p">,</span> <span class="n">relative</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ret</span>
+
+
+<span class="k">def</span> <span class="nf">_arithmetic_returns</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">periods</span><span class="p">,</span> <span class="n">relative</span><span class="p">):</span>
+    <span class="sd">"""Arithmetic returns."""</span>
+    <span class="c1"># to avoid computing it twice</span>
+    <span class="n">shifted</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">periods</span><span class="p">)</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span> <span class="o">-</span> <span class="n">shifted</span><span class="p">)</span> 
+    
+    <span class="k">if</span> <span class="n">relative</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ret</span> <span class="o">/</span> <span class="n">shifted</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+
+<span class="k">def</span> <span class="nf">_log_returns</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">periods</span><span class="p">):</span>
+    <span class="sd">"""Log returns."""</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">data</span> <span class="o">/</span> <span class="n">data</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">periods</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Example">
+<a class="anchor" href="#Example" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example<a class="anchor-link" href="#Example"> </a>
+</h3>
+<p><img src="/blog/images/copied_from_nb/img/5tips_ts/returns.png" alt=""></p>
+<p>These are some of the tips I find more useful in my day-to-day basis. I really hope you find something interesting in this post and, if you find any error or would like to discuss any concept, please leave a comment and I will answer as soon as possible.</p>
+<h2 id="References">
+<a class="anchor" href="#References" aria-hidden="true"><span class="octicon octicon-link"></span></a>References<a class="anchor-link" href="#References"> </a>
+</h2>
+<ol>
+<li>Callum Ballard — <a href="https://towardsdatascience.com/making-matplotlib-beautiful-by-default-d0d41e3534fd">Making Matplotlib Beautiful By Default</a>.</li>
+<li>Steven L. Brunton — <a href="https://www.youtube.com/watch?v=s2K1JfNR7Sc&amp;ab_channel=SteveBrunton">Denoising Data with FFT [Python]</a>.</li>
+<li>Greg Welch, Gary Bishop — <a href="https://www.cs.unc.edu/~welch/media/pdf/kalman_intro.pdf">An introduction to the Kalman Filter</a>.</li>
+<li>Simo Särkkä — Bayesian filtering and smoothing.</li>
+<li>Yves-Laurent Kom Samo — <a href="https://towardsdatascience.com/non-stationarity-and-memory-in-financial-markets-fcef1fe76053">Stationarity and Memory in Financial Markets</a>.</li>
+<li>Robi Polikar — <a href="http://users.rowan.edu/~polikar/WTtutorial.html">The Wavelet Tutorial</a>.</li>
+</ol>
+
+</div>
+</div>
+</div>
+</div>
+
+
+
+  </div><!-- from https://github.com/utterance/utterances -->
+<script src="https://utteranc.es/client.js"
+        repo="Xylambda/blog"
+        issue-term="title"
+        label="blogpost-comment"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script><a class="u-url" href="/blog/python/numpy/pandas/2020/12/06/ts_tips.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>A data science blog with bonus contents.</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/Xylambda" title="Xylambda"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/xylambda" title="xylambda"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
