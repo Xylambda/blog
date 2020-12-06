@@ -1,0 +1,59 @@
+<h1 id="required-knowledge">Required knowledge</h1>
+<p>This post is pretty easy to follow if you already have some basic knowledge of Pandas, NumPy and Python. I will not go into much details with the theoretical stuff but use the resources at the end or ask a question if you need clarification about some particular concept.</p>
+
+<h1 id="removing-noise-with-the-fourier-transform">Removing noise with the Fourier Transform</h1>
+<p>It is often the case that we need to study the underlying process that drives a particular time series. To do that, we may want to remove the noise of the time series and analyze the signal.</p>
+
+<p>The Fourier Transform can help us achieve this objective. By moving our time series from the time domain to the frequency domain, we can filter out the frequencies that pollute the data. Then, we just have to apply the inverse Fourier transform to get a filtered version of our time series.</p>
+
+<p><em>Note: the code presented in this section is a slightly modified version of Steven L. Brunton code. See References section to find the original code and explanation.</em></p>
+
+<h2 id="the-code">The code</h2>
+<p>The following gist contains the necessary code to remove the noise using the Fourier Transform:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">fft_denoiser</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_components</span><span class="p">,</span> <span class="n">to_real</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="s">"""Fast fourier transform denoiser.
+    
+    Denoises data using the fast fourier transform.
+    
+    Parameters
+    ----------
+    x : numpy.array
+        The data to denoise.
+    n_components : int
+        The value above which the coefficients will be kept.
+    to_real : bool, optional, default: True
+        Whether to remove the complex part (True) or not (False)
+        
+    Returns
+    -------
+    clean_data : numpy.array
+        The denoised data.
+        
+    References
+    ----------
+    .. [1] Steve Brunton - Denoising Data with FFT[Python]
+       https://www.youtube.com/watch?v=s2K1JfNR7Sc&amp;ab_channel=SteveBrunton
+    
+    """</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    
+    <span class="c1"># compute the fft
+</span>    <span class="n">fft</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    
+    <span class="c1"># compute power spectrum density
+</span>    <span class="c1"># squared magnitud of each fft coefficient
+</span>    <span class="n">PSD</span> <span class="o">=</span> <span class="n">fft</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">fft</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span>
+    
+    <span class="c1"># keep high frequencies
+</span>    <span class="n">_mask</span> <span class="o">=</span> <span class="n">PSD</span> <span class="o">&gt;</span> <span class="n">n_components</span>
+    <span class="n">fft</span> <span class="o">=</span> <span class="n">_mask</span> <span class="o">*</span> <span class="n">fft</span>
+    
+    <span class="c1"># inverse fourier transform
+</span>    <span class="n">clean_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">fft</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">to_real</span><span class="p">:</span>
+        <span class="n">clean_data</span> <span class="o">=</span> <span class="n">clean_data</span><span class="o">.</span><span class="n">real</span>
+    
+    <span class="k">return</span> <span class="n">clean_data</span>
+</code></pre></div></div>
