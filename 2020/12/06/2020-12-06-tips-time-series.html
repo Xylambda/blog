@@ -19,8 +19,8 @@
 <p><em>This is a repost from my medium article <a href="https://alejandrops.medium.com/5-tips-for-working-with-time-series-in-python-d889109e676d">5 tips for working with time series in Python</a></em></p>
 <hr />
 <p>At some point in his/her career, any Data Scientist has to be able to manipulate time series data. I have been working as a Data Scientist and Quant Researcher for the last 14 months and I found little “cooking tips” for working with this type of data. Today, I would like to share some of those tips.</p>
-<h2 id="1.-Required-knowledge">1. Required knowledge<a class="anchor-link" href="#1.-Required-knowledge"> </a></h2><p>This post is pretty easy to follow if you already have some basic knowledge of Pandas, NumPy and Python. I will not go into much details with the theoretical stuff but use the resources at the end or ask a question if you need clarification about some particular concept.</p>
-<h2 id="2.-Removing-noise-with-the-Fourier-Transform">2. Removing noise with the Fourier Transform<a class="anchor-link" href="#2.-Removing-noise-with-the-Fourier-Transform"> </a></h2><p>It is often the case that we need to study the underlying process that drives a particular time series. To do that, we may want to remove the noise of the time series and analyze the signal.</p>
+<h2 id="Required-knowledge">Required knowledge<a class="anchor-link" href="#Required-knowledge"> </a></h2><p>This post is pretty easy to follow if you already have some basic knowledge of Pandas, NumPy and Python. I will not go into much details with the theoretical stuff but use the resources at the end or ask a question if you need clarification about some particular concept.</p>
+<h2 id="Removing-noise-with-the-Fourier-Transform">Removing noise with the Fourier Transform<a class="anchor-link" href="#Removing-noise-with-the-Fourier-Transform"> </a></h2><p>It is often the case that we need to study the underlying process that drives a particular time series. To do that, we may want to remove the noise of the time series and analyze the signal.</p>
 <p>The Fourier Transform can help us achieve this objective. By moving our time series from the time domain to the frequency domain, we can filter out the frequencies that pollute the data. Then, we just have to apply the inverse Fourier transform to get a filtered version of our time series.</p>
 <p><em>Note: the code presented in this section is a slightly modified version of Steven L. Brunton code. See References section to find the original code and explanation.</em></p>
 <h3 id="&#160;2.1.-The-code">&#160;2.1. The code<a class="anchor-link" href="#&#160;2.1.-The-code"> </a></h3><p>The following gist contains the necessary code to remove the noise using the Fourier Transform:</p>
@@ -91,14 +91,14 @@
 
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="2.2.-Usage-example">2.2. Usage example<a class="anchor-link" href="#2.2.-Usage-example"> </a></h3><p><img src="/blog/images/copied_from_nb/img/5tips_ts/fourier.png" alt="" /></p>
+<h3 id="Usage-example">Usage example<a class="anchor-link" href="#Usage-example"> </a></h3><p><img src="/blog/images/copied_from_nb/img/5tips_ts/fourier.png" alt="" /></p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="3.-Removing-noise-with-the-Kalman-Filter">3. Removing noise with the Kalman Filter<a class="anchor-link" href="#3.-Removing-noise-with-the-Kalman-Filter"> </a></h2><p>With the Fourier Transform we obtain the frequencies that exist in a given time series, but we do not have any information of when these frequencies occur in time. This means that, in its basic form, the Fourier Transform is not the best choice for non-stationary time series.</p>
+<h2 id="Removing-noise-with-the-Kalman-Filter">Removing noise with the Kalman Filter<a class="anchor-link" href="#Removing-noise-with-the-Kalman-Filter"> </a></h2><p>With the Fourier Transform we obtain the frequencies that exist in a given time series, but we do not have any information of when these frequencies occur in time. This means that, in its basic form, the Fourier Transform is not the best choice for non-stationary time series.</p>
 <p>For example, financial time series are considered non-stationary (although any attempt <a href="https://towardsdatascience.com/non-stationarity-and-memory-in-financial-markets-fcef1fe76053">to prove it statistically is doomed</a>), thus making Fourier a bad choice.</p>
 <p>At this point, we can choose to apply the Fourier Transform in a rolling-basis or to go with a <a href="http://users.rowan.edu/~polikar/WTpart1.html">Wavelet Transform</a>. But there is a much more interesting algorithm <strong>called Kalman Filter</strong>.</p>
 <p>The <a href="https://www.cs.unc.edu/~welch/media/pdf/kalman_intro.pdf">Kalman Filter</a> is essentially a <a href="https://users.aalto.fi/~ssarkka/pub/cup_book_online_20131111.pdf">Bayesian Linear Regression</a> that can optimally estimate the hidden state of a process using its observable variables.</p>
@@ -111,10 +111,10 @@
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="4.-Dealing-with-Outliers">4. Dealing with Outliers<a class="anchor-link" href="#4.-Dealing-with-Outliers"> </a></h2><p>Outliers are usually undesirable because they deeply affect our conclusions if we are not careful when dealing with them. For example, the Pearson correlation formula can have a very different result if there are large enough outliers in our data.</p>
+<h2 id="Dealing-with-Outliers">Dealing with Outliers<a class="anchor-link" href="#Dealing-with-Outliers"> </a></h2><p>Outliers are usually undesirable because they deeply affect our conclusions if we are not careful when dealing with them. For example, the Pearson correlation formula can have a very different result if there are large enough outliers in our data.</p>
 <p>Outlier analysis and filtering in time series requires a more sophisticated approach than in normal data, since <strong>you cannot use future information to filter past outliers.</strong></p>
 <p>One quick way to remove outliers is doing it in a rolling/expanding basis. A common algorithm to find outliers is computing the mean and standard deviation of our data and check which values are n standard deviations above or below the mean (typically, n is set to 3). Those values are then marked as outliers.</p>
-<h3 id="4.1.-The-code">4.1. The code<a class="anchor-link" href="#4.1.-The-code"> </a></h3><p>The following code allows you to filter outliers using the aforementioned algorithm but in rolling or expanding mode to avoid <a href="https://corporatefinanceinstitute.com/resources/knowledge/finance/look-ahead-bias/">look-ahead bias</a>.</p>
+<h3 id="The-code">The code<a class="anchor-link" href="#The-code"> </a></h3><p>The following code allows you to filter outliers using the aforementioned algorithm but in rolling or expanding mode to avoid <a href="https://corporatefinanceinstitute.com/resources/knowledge/finance/look-ahead-bias/">look-ahead bias</a>.</p>
 
 </div>
 </div>
@@ -182,7 +182,7 @@
 
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="4.2.-Example">4.2. Example<a class="anchor-link" href="#4.2.-Example"> </a></h3><p>Playing with the parameters you can fine-tune your analysis. Here is an example using the default values of the function.</p>
+<h3 id="Example">Example<a class="anchor-link" href="#Example"> </a></h3><p>Playing with the parameters you can fine-tune your analysis. Here is an example using the default values of the function.</p>
 <p><img src="/blog/images/copied_from_nb/img/5tips_ts/outliers.png" alt="" /></p>
 
 </div>
@@ -190,9 +190,9 @@
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="5.-The-right-way-to-normalize-time-series-data.">5. The right way to normalize time series data.<a class="anchor-link" href="#5.-The-right-way-to-normalize-time-series-data."> </a></h2><p>Many posts use the classical fit-transform approach with time series as if they could be treated as normal data. As with outliers, you cannot use future information to normalize data from the past unless you are 100% sure the values you are using to normalize are constant over time.</p>
+<h2 id="The-right-way-to-normalize-time-series-data.">The right way to normalize time series data.<a class="anchor-link" href="#The-right-way-to-normalize-time-series-data."> </a></h2><p>Many posts use the classical fit-transform approach with time series as if they could be treated as normal data. As with outliers, you cannot use future information to normalize data from the past unless you are 100% sure the values you are using to normalize are constant over time.</p>
 <p>The right way to normalize time series is in a rolling/expanding basis.</p>
-<h3 id="5.1.-The-code">5.1. The code<a class="anchor-link" href="#5.1.-The-code"> </a></h3><p>I used Sklearn API to create a class that allows you to normalize data avoiding look-ahead bias. Because it inherits BaseEstimator and TransformerMixin it is possible to embed this class in a Sklearn pipeline.</p>
+<h3 id="The-code">The code<a class="anchor-link" href="#The-code"> </a></h3><p>I used Sklearn API to create a class that allows you to normalize data avoiding look-ahead bias. Because it inherits BaseEstimator and TransformerMixin it is possible to embed this class in a Sklearn pipeline.</p>
 
 </div>
 </div>
@@ -318,16 +318,16 @@
 
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="5.2.-Example">5.2. Example<a class="anchor-link" href="#5.2.-Example"> </a></h2><p><img src="/blog/images/copied_from_nb/img/5tips_ts/normalization.png" alt="" /></p>
+<h3 id="Example">Example<a class="anchor-link" href="#Example"> </a></h3><p><img src="/blog/images/copied_from_nb/img/5tips_ts/normalization.png" alt="" /></p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="6.-A-flexible-way-to-compute-returns.">6. A flexible way to compute returns.<a class="anchor-link" href="#6.-A-flexible-way-to-compute-returns."> </a></h2><p>The last tip is focused on quantitative analysis of financial time series. Working with returns is the first thing you learn as a quant researcher. Hence, it is necessary to have a basic framework to quickly compute log and arithmetic returns in different periods of time.</p>
+<h2 id="A-flexible-way-to-compute-returns.">A flexible way to compute returns.<a class="anchor-link" href="#A-flexible-way-to-compute-returns."> </a></h2><p>The last tip is focused on quantitative analysis of financial time series. Working with returns is the first thing you learn as a quant researcher. Hence, it is necessary to have a basic framework to quickly compute log and arithmetic returns in different periods of time.</p>
 <p>Also, when filtering financial time series, the ideal procedure filters returns first and then goes back to prices. So you are free to add this step to the code from section 4.</p>
-<h3 id="6.2.-The-code">6.2. The code<a class="anchor-link" href="#6.2.-The-code"> </a></h3><p>The following gist contains a basic framework to compute returns</p>
+<h3 id="The-code">The code<a class="anchor-link" href="#The-code"> </a></h3><p>The following gist contains a basic framework to compute returns</p>
 
 </div>
 </div>
@@ -406,9 +406,9 @@
 
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="6.3.-Example">6.3. Example<a class="anchor-link" href="#6.3.-Example"> </a></h3><p><img src="/blog/images/copied_from_nb/img/5tips_ts/returns.png" alt="" /></p>
+<h3 id="Example">Example<a class="anchor-link" href="#Example"> </a></h3><p><img src="/blog/images/copied_from_nb/img/5tips_ts/returns.png" alt="" /></p>
 <p>These are some of the tips I find more useful in my day-to-day basis. I really hope you find something interesting in this post and, if you find any error or would like to discuss any concept, please leave a comment and I will answer as soon as possible.</p>
-<h2 id="7.-References">7. References<a class="anchor-link" href="#7.-References"> </a></h2><ol>
+<h2 id="References">References<a class="anchor-link" href="#References"> </a></h2><ol>
 <li>Callum Ballard — <a href="https://towardsdatascience.com/making-matplotlib-beautiful-by-default-d0d41e3534fd">Making Matplotlib Beautiful By Default</a>.</li>
 <li>Steven L. Brunton — <a href="https://www.youtube.com/watch?v=s2K1JfNR7Sc&amp;ab_channel=SteveBrunton">Denoising Data with FFT [Python]</a>.</li>
 <li>Greg Welch, Gary Bishop — <a href="https://www.cs.unc.edu/~welch/media/pdf/kalman_intro.pdf">An introduction to the Kalman Filter</a>.</li>
