@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Building a Trainer class for PyTorch models | Alejandro PS</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="Building a Trainer class for PyTorch models" />
+<meta name="author" content="Alejandro PS" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="As much as I like PyTorch I think is not a beginner-friendly deep learning framework, especially if you do not know how the optimization process of a model works. There are great tools out there, like PyTorch Lightning, that are designed to ease this process, but I believe it is always good to know how to create the basic building blocks. In this post, we build a simple Trainer class that facilitates the training process." />
+<meta property="og:description" content="As much as I like PyTorch I think is not a beginner-friendly deep learning framework, especially if you do not know how the optimization process of a model works. There are great tools out there, like PyTorch Lightning, that are designed to ease this process, but I believe it is always good to know how to create the basic building blocks. In this post, we build a simple Trainer class that facilitates the training process." />
+<link rel="canonical" href="https://xylambda.github.io/blog/python/pytorch/machine-learning/2021/01/04/pytorch_trainer.html" />
+<meta property="og:url" content="https://xylambda.github.io/blog/python/pytorch/machine-learning/2021/01/04/pytorch_trainer.html" />
+<meta property="og:site_name" content="Alejandro PS" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-01-04T00:00:00-06:00" />
+<script type="application/ld+json">
+{"author":{"@type":"Person","name":"Alejandro PS"},"headline":"Building a Trainer class for PyTorch models","description":"As much as I like PyTorch I think is not a beginner-friendly deep learning framework, especially if you do not know how the optimization process of a model works. There are great tools out there, like PyTorch Lightning, that are designed to ease this process, but I believe it is always good to know how to create the basic building blocks. In this post, we build a simple Trainer class that facilitates the training process.","datePublished":"2021-01-04T00:00:00-06:00","dateModified":"2021-01-04T00:00:00-06:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://xylambda.github.io/blog/python/pytorch/machine-learning/2021/01/04/pytorch_trainer.html"},"url":"https://xylambda.github.io/blog/python/pytorch/machine-learning/2021/01/04/pytorch_trainer.html","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://xylambda.github.io/blog/feed.xml" title="Alejandro PS" /><link rel="shortcut icon" type="image/x-icon" href="/blog/images/favicon.ico"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Building a Trainer class for PyTorch models | Alejandro PS</title>
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="Building a Trainer class for PyTorch models" />
+<meta name="author" content="Alejandro PS" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="As much as I like PyTorch I think is not a beginner-friendly deep learning framework, especially if you do not know how the optimization process of a model works. There are great tools out there, like PyTorch Lightning, that are designed to ease this process, but I believe it is always good to know how to create the basic building blocks. In this post, we build a simple Trainer class that facilitates the training process." />
+<meta property="og:description" content="As much as I like PyTorch I think is not a beginner-friendly deep learning framework, especially if you do not know how the optimization process of a model works. There are great tools out there, like PyTorch Lightning, that are designed to ease this process, but I believe it is always good to know how to create the basic building blocks. In this post, we build a simple Trainer class that facilitates the training process." />
+<link rel="canonical" href="https://xylambda.github.io/blog/python/pytorch/machine-learning/2021/01/04/pytorch_trainer.html" />
+<meta property="og:url" content="https://xylambda.github.io/blog/python/pytorch/machine-learning/2021/01/04/pytorch_trainer.html" />
+<meta property="og:site_name" content="Alejandro PS" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-01-04T00:00:00-06:00" />
+<script type="application/ld+json">
+{"author":{"@type":"Person","name":"Alejandro PS"},"headline":"Building a Trainer class for PyTorch models","description":"As much as I like PyTorch I think is not a beginner-friendly deep learning framework, especially if you do not know how the optimization process of a model works. There are great tools out there, like PyTorch Lightning, that are designed to ease this process, but I believe it is always good to know how to create the basic building blocks. In this post, we build a simple Trainer class that facilitates the training process.","datePublished":"2021-01-04T00:00:00-06:00","dateModified":"2021-01-04T00:00:00-06:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://xylambda.github.io/blog/python/pytorch/machine-learning/2021/01/04/pytorch_trainer.html"},"url":"https://xylambda.github.io/blog/python/pytorch/machine-learning/2021/01/04/pytorch_trainer.html","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+<link href="https://unpkg.com/@primer/css/dist/primer.css" rel="stylesheet" />
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css"><link type="application/atom+xml" rel="alternate" href="https://xylambda.github.io/blog/feed.xml" title="Alejandro PS" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css" integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous">
+    <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML"> </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js" integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head><body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/blog/">Alejandro PS</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/blog/about/">About Me</a><a class="page-link" href="/blog/search/">Search</a><a class="page-link" href="/blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Building a Trainer class for PyTorch models</h1><p class="page-description">As much as I like PyTorch I think is not a beginner-friendly deep learning framework, especially if you do not know how the optimization process of a model works. There are great tools out there, like PyTorch Lightning, that are designed to ease this process, but I believe it is always good to know how to create the basic building blocks. In this post, we build a simple Trainer class that facilitates  the training process.</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-01-04T00:00:00-06:00" itemprop="datePublished">
+        Jan 4, 2021
+      </time>• 
+          <span itemprop="author" itemscope itemtype="http://schema.org/Person">
+            <span class="p-author h-card" itemprop="name">Alejandro PS</span></span>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      7 min read
+    
+</span></p>
+
+    
+      <p class="category-tags"><i class="fas fa-tags category-tags-icon"></i></i> 
+      
+        <a class="category-tags-link" href="/blog/categories/#python">python</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blog/categories/#pytorch">pytorch</a>
+        &nbsp;
+      
+        <a class="category-tags-link" href="/blog/categories/#machine-learning">machine-learning</a>
+        
+      
+      </p>
+    
+
+    
+      
+        <div class="pb-5 d-flex flex-wrap flex-justify-end">
+          <div class="px-2">
+
+    <a href="https://github.com/Xylambda/blog/tree/master/_notebooks/2021-01-04-pytorch_trainer.ipynb" role="button" target="_blank">
+<img class="notebook-badge-image" src="/blog/assets/badges/github.svg" alt="View On GitHub">
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://mybinder.org/v2/gh/Xylambda/blog/master?filepath=_notebooks%2F2021-01-04-pytorch_trainer.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/blog/assets/badges/binder.svg" alt="Open In Binder"/>
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://colab.research.google.com/github/Xylambda/blog/blob/master/_notebooks/2021-01-04-pytorch_trainer.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/blog/assets/badges/colab.svg" alt="Open In Colab"/>
+    </a>
+</div>
+        </div>
+      </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h2"><a href="#The-training-process">The training process </a></li>
+<li class="toc-entry toc-h2"><a href="#What-is-wrong-with-PyTorch?">What is wrong with PyTorch? </a></li>
+<li class="toc-entry toc-h2"><a href="#What-are-we-going-to-build?">What are we going to build? </a></li>
+<li class="toc-entry toc-h2"><a href="#A-note-on-Dataset-and-DataLoader">A note on Dataset and DataLoader </a></li>
+<li class="toc-entry toc-h2"><a href="#The-code">The code </a></li>
+<li class="toc-entry toc-h2"><a href="#Example-of-use">Example of use </a></li>
+<li class="toc-entry toc-h2"><a href="#Can-we-improve-it?">Can we improve it? </a></li>
+<li class="toc-entry toc-h2"><a href="#References">References </a></li>
+</ul><!--
+#################################################
+### THIS FILE WAS AUTOGENERATED! DO NOT EDIT! ###
+#################################################
+# file to edit: _notebooks/2021-01-04-pytorch_trainer.ipynb
+-->
+
+<div class="container" id="notebook-container">
+        
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="The-training-process">
+<a class="anchor" href="#The-training-process" aria-hidden="true"><span class="octicon octicon-link"></span></a>The training process<a class="anchor-link" href="#The-training-process"> </a>
+</h2>
+<p>Let's start by refreshing the algorithm for training a neural network.</p>
+<ol>
+<li>We first compute the forward pass of the model.</li>
+<li>Then, we calculate the loss using whatever function we have decided to use.</li>
+<li>Once we have the loss, we backpropagate the error through the model.</li>
+<li>Finally, using the errors, we update the parameters.</li>
+</ol>
+<p>We keep repeating these four steps until convergence.</p>
+<h2 id="What-is-wrong-with-PyTorch?">
+<a class="anchor" href="#What-is-wrong-with-PyTorch?" aria-hidden="true"><span class="octicon octicon-link"></span></a>What is wrong with PyTorch?<a class="anchor-link" href="#What-is-wrong-with-PyTorch?"> </a>
+</h2>
+<p>Nothing really, you just have to build the training loop by calling specific built-in routines in the right order, unlike in Keras where you just have to call <code>fit</code> method to optimize your models. That is why it can be a little confused and the beginning and definitely time-consuming.</p>
+<h2 id="What-are-we-going-to-build?">
+<a class="anchor" href="#What-are-we-going-to-build?" aria-hidden="true"><span class="octicon octicon-link"></span></a>What are we going to build?<a class="anchor-link" href="#What-are-we-going-to-build?"> </a>
+</h2>
+<p>We are going to create a class called <code>Trainer</code> that is going to imitate the behaviour of Keras training process. That is, we just need call <code>fit</code> to optimize our models while we drink a cup of coffe.</p>
+<p>I personally want the trainer to have the following features:</p>
+<ul>
+<li>Train the model passing the loaders, loss and optimizer.</li>
+<li>Control the train and validation loss.</li>
+<li>Easy to read.</li>
+<li>Extendable. For example, easy to add new features like L1 or ElasticNet regularization.</li>
+</ul>
+<h2 id="A-note-on-Dataset-and-DataLoader">
+<a class="anchor" href="#A-note-on-Dataset-and-DataLoader" aria-hidden="true"><span class="octicon octicon-link"></span></a>A note on Dataset and DataLoader<a class="anchor-link" href="#A-note-on-Dataset-and-DataLoader"> </a>
+</h2>
+<p>Dataset and DataLoader are the default classes to feed a model in PyTorch efficiently. Basically, <code>Dataset</code> wrapps your data and <code>DataLoader</code> loads the data into the model.</p>
+<p>I recommed you reading <a href="https://stanford.edu/~shervine/blog/pytorch-how-to-generate-data-parallel">this article</a> from Standford University if you are unfamiliar with the topic.</p>
+<p>We will work assuming our dataset is designed following the next code:</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
+
+
+<span class="k">class</span> <span class="nc">DataWrapper</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="sd">"""</span>
+<span class="sd">    Class to wrap a dataset. Assumes X and y are already</span>
+<span class="sd">    torch tensors and have the right data type and shape.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    X : torch.Tensor</span>
+<span class="sd">        Features tensor.</span>
+<span class="sd">    y : torch.Tensor</span>
+<span class="sd">        Labels tensor.</span>
+<span class="sd">    """</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="o">=</span> <span class="n">X</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">y</span>
+        
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="The-code">
+<a class="anchor" href="#The-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>The code<a class="anchor-link" href="#The-code"> </a>
+</h2>
+<p>The fit structure is</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Trainer</span><span class="p">:</span>
+    <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_loader</span><span class="p">,</span> <span class="n">val_loader</span><span class="p">,</span> <span class="n">epochs</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
+            <span class="c1"># train</span>
+            <span class="n">train_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_train</span><span class="p">(</span><span class="n">train_loader</span><span class="p">)</span>
+
+            <span class="c1"># validate</span>
+            <span class="n">val_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate</span><span class="p">(</span><span class="n">val_loader</span><span class="p">)</span>
+
+        <span class="c1"># log finished process</span>
+</pre></div>
+<p>Now we need to create the <code>_train</code> and <code>_validate</code> functions. The train implements the optimization algorithm we saw at the beginning of the post. The validation is not used to optimize, so we do not need to compute the gradients. Fortunatelly, PyTorch provides with a primitive to prevent this to happen: <code>torch.no_grad()</code></p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Trainer</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="k">def</span> <span class="nf">_train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loader</span><span class="p">):</span>
+        <span class="c1"># put model in train mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">features</span><span class="p">,</span> <span class="n">labels</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>            
+            <span class="c1"># forward pass</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+
+            <span class="c1"># loss</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_loss</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+            <span class="c1"># remove gradient from previous passes</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+
+            <span class="c1"># backprop</span>
+            <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+
+            <span class="c1"># parameters update</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loader</span><span class="p">):</span>
+        <span class="c1"># put model in evaluation mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">features</span><span class="p">,</span> <span class="n">labels</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>                
+                <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+                <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_loss</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+</pre></div>
+<p>Lastly, I created a separate function to compute loss because:</p>
+<ul>
+<li>Sometimes, the target needs to be casted to long dtype and I wanted the Trainer the handle it.</li>
+<li>You can add regularization penalties in this function.</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Trainer</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="k">def</span> <span class="nf">_compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">real</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span><span class="p">(</span><span class="n">real</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span><span class="p">(</span><span class="n">real</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">long</span><span class="p">())</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Target tensor has been casted from"</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">target</span><span class="p">)</span><span class="si">}</span><span class="s2"> to 'long' dtype to avoid errors."</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The complete code for the trainer:</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<details class="description">
+      <summary class="btn btn-sm" data-open="Hide Code" data-close="Show Code"></summary>
+        <p></p>
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#collapse</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+
+<span class="k">class</span> <span class="nc">Trainer</span><span class="p">:</span>
+    <span class="sd">"""Trainer</span>
+<span class="sd">    </span>
+<span class="sd">    Class that eases the training of a PyTorch model.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model : torch.Module</span>
+<span class="sd">        The model to train.</span>
+<span class="sd">    criterion : torch.Module</span>
+<span class="sd">        Loss function criterion.</span>
+<span class="sd">    optimizer : torch.optim</span>
+<span class="sd">        Optimizer to perform the parameters update.</span>
+<span class="sd">    logger_kwards : dict</span>
+<span class="sd">        Args for ..</span>
+<span class="sd">        </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    train_loss_ : list</span>
+<span class="sd">    val_loss_ : list</span>
+<span class="sd">    </span>
+<span class="sd">    """</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> 
+        <span class="n">model</span><span class="p">,</span> 
+        <span class="n">criterion</span><span class="p">,</span> 
+        <span class="n">optimizer</span><span class="p">,</span> 
+        <span class="n">logger_kwargs</span><span class="p">,</span> 
+        <span class="n">device</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span> <span class="o">=</span> <span class="n">criterion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger_kwargs</span> <span class="o">=</span> <span class="n">logger_kwargs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        
+        <span class="c1"># send model to device</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="c1"># attributes        </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_loss_</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_loss_</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_loader</span><span class="p">,</span> <span class="n">val_loader</span><span class="p">,</span> <span class="n">epochs</span><span class="p">):</span>
+        <span class="sd">"""Fits.</span>
+<span class="sd">        </span>
+<span class="sd">        Fit the model using the given loaders for the given number</span>
+<span class="sd">        of epochs.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        train_loader : </span>
+<span class="sd">        val_loader : </span>
+<span class="sd">        epochs : int</span>
+<span class="sd">            Number of training epochs.</span>
+<span class="sd">        </span>
+<span class="sd">        """</span>
+        <span class="c1"># track total training time</span>
+        <span class="n">total_start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="c1"># ---- train process ----</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
+            <span class="c1"># track epoch time</span>
+            <span class="n">epoch_start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+            <span class="c1"># train</span>
+            <span class="n">tr_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_train</span><span class="p">(</span><span class="n">train_loader</span><span class="p">)</span>
+            
+            <span class="c1"># validate</span>
+            <span class="n">val_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate</span><span class="p">(</span><span class="n">val_loader</span><span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">train_loss_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tr_loss</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">val_loss_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val_loss</span><span class="p">)</span>
+
+            <span class="n">epoch_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">epoch_start_time</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">(</span>
+                <span class="n">tr_loss</span><span class="p">,</span> 
+                <span class="n">val_loss</span><span class="p">,</span> 
+                <span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> 
+                <span class="n">epochs</span><span class="p">,</span> 
+                <span class="n">epoch_time</span><span class="p">,</span> 
+                <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">logger_kwargs</span>
+            <span class="p">)</span>
+
+        <span class="n">total_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">total_start_time</span>
+
+        <span class="c1"># final message</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"""End of training. Total time: </span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">total_time</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="si">}</span><span class="s2"> seconds"""</span>
+        <span class="p">)</span>
+        
+    
+    <span class="k">def</span> <span class="nf">_logger</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> 
+        <span class="n">tr_loss</span><span class="p">,</span> 
+        <span class="n">val_loss</span><span class="p">,</span> 
+        <span class="n">epoch</span><span class="p">,</span> 
+        <span class="n">epochs</span><span class="p">,</span> 
+        <span class="n">epoch_time</span><span class="p">,</span> 
+        <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+        <span class="n">update_step</span><span class="o">=</span><span class="mi">20</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">epoch</span> <span class="o">%</span> <span class="n">update_step</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">epoch</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># to satisfy pep8 common limit of characters</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">epochs</span><span class="si">}</span><span class="s2"> | Train loss: </span><span class="si">{</span><span class="n">tr_loss</span><span class="si">}</span><span class="s2">"</span> 
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2"> | Validation loss: </span><span class="si">{</span><span class="n">val_loss</span><span class="si">}</span><span class="s2">"</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2"> | Time/epoch: </span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">epoch_time</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="si">}</span><span class="s2"> seconds"</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loader</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+        
+        <span class="k">for</span> <span class="n">features</span><span class="p">,</span> <span class="n">labels</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>
+            <span class="c1"># move to device</span>
+            <span class="n">features</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_device</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            
+            <span class="c1"># forward pass</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+            
+            <span class="c1"># loss</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_loss</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+            
+            <span class="c1"># remove gradient from previous passes</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+            
+            <span class="c1"># backprop</span>
+            <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+            
+            <span class="c1"># parameters update</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+            
+        <span class="k">return</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">_to_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">features</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">),</span> <span class="n">labels</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loader</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">features</span><span class="p">,</span> <span class="n">labels</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>
+                <span class="c1"># move to device</span>
+                <span class="n">features</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_device</span><span class="p">(</span>
+                    <span class="n">features</span><span class="p">,</span> 
+                    <span class="n">labels</span><span class="p">,</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">device</span>
+                <span class="p">)</span>
+                
+                <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+                <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_loss</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+                
+        <span class="k">return</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">_compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">real</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span><span class="p">(</span><span class="n">real</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span><span class="p">(</span><span class="n">real</span><span class="p">,</span> <span class="n">target</span><span class="o">.</span><span class="n">long</span><span class="p">())</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Target tensor has been casted from"</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">target</span><span class="p">)</span><span class="si">}</span><span class="s2"> to 'long' dtype to avoid errors."</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># apply regularization if any</span>
+        <span class="c1"># loss += penalty.item()</span>
+            
+        <span class="k">return</span> <span class="n">loss</span>
+
+    <span class="k">def</span> <span class="nf">_get_device</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dev</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">'cuda'</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">'cpu'</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Device was automatically selected: </span><span class="si">{</span><span class="n">dev</span><span class="si">}</span><span class="s2">"</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dev</span> <span class="o">=</span> <span class="n">device</span>
+
+        <span class="k">return</span> <span class="n">dev</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+    </details>
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>I've added a logger and code to send the model and data to a given device.</p>
+<h2 id="Example-of-use">
+<a class="anchor" href="#Example-of-use" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example of use<a class="anchor-link" href="#Example-of-use"> </a>
+</h2>
+<p>Using Sklearn, we are going to generate dummy data and train a simple regression model.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<details class="description" open="">
+      <summary class="btn btn-sm" data-open="Hide Code" data-close="Show Code"></summary>
+        <p></p>
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#collapse-show</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">make_regression</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">make_regression</span><span class="p">(</span>
+    <span class="n">n_samples</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> 
+    <span class="n">n_features</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+    <span class="n">n_informative</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+    <span class="n">n_targets</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">noise</span><span class="o">=</span><span class="mi">10</span>
+<span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s2">"."</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+    </details>
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>[&lt;matplotlib.lines.Line2D at 0x21067668be0&gt;]</pre>
+</div>
+
+</div>
+
+<div class="output_area">
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,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%0A">
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<details class="description">
+      <summary class="btn btn-sm" data-open="Hide Code" data-close="Show Code"></summary>
+        <p></p>
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#collapse</span>
+
+<span class="c1"># to avoid error</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># two splits to get train, test and validation datasets</span>
+<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.33</span><span class="p">)</span>
+<span class="n">X_val</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_val</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.33</span><span class="p">)</span>
+
+<span class="c1"># transform to torch tensor</span>
+<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">X_val</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">(),</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">(),</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">X_val</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+<span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span><span class="p">,</span> <span class="n">y_val</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">y_train</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">(),</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">y_test</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">(),</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">y_val</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+    </details>
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>A simple neuron will be enough to create a linear regression model</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<details class="description" open="">
+      <summary class="btn btn-sm" data-open="Hide Code" data-close="Show Code"></summary>
+        <p></p>
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#collapse-show</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span class="kn">import</span> <span class="nn">torch.optim</span> <span class="k">as</span> <span class="nn">optim</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">in_features</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">out_features</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">()</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+    </details>
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Now we have to wrap our data and create the DataLoaders to pass to our trainer:</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<details class="description" open="">
+      <summary class="btn btn-sm" data-open="Hide Code" data-close="Show Code"></summary>
+        <p></p>
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#collapse-show</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
+
+<span class="n">train_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">DataWrapper</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">),</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="n">val_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">DataWrapper</span><span class="p">(</span><span class="n">X_val</span><span class="p">,</span> <span class="n">y_val</span><span class="p">),</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+    </details>
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Finally, we train our model</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<details class="description" open="">
+      <summary class="btn btn-sm" data-open="Hide Code" data-close="Show Code"></summary>
+        <p></p>
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#collapse-show</span>
+<span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">'cuda'</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">'cpu'</span><span class="p">)</span>
+
+<span class="n">logger_kwars</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'update_step'</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="s1">'show'</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+    <span class="n">criterion</span><span class="o">=</span><span class="n">criterion</span><span class="p">,</span>
+    <span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
+    <span class="n">logger_kwargs</span><span class="o">=</span><span class="n">logger_kwars</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span>
+<span class="p">)</span>
+
+<span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_loader</span><span class="p">,</span> <span class="n">val_loader</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+    </details>
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>INFO:root:Epoch 1/120 | Train loss: 614.618896484375 | Validation loss: 159.5471649169922 | Time/epoch: 0.56739 seconds
+INFO:root:Epoch 20/120 | Train loss: 511.74383544921875 | Validation loss: 137.21205139160156 | Time/epoch: 0.40326 seconds
+INFO:root:Epoch 40/120 | Train loss: 415.39007568359375 | Validation loss: 118.22764587402344 | Time/epoch: 0.36988 seconds
+INFO:root:Epoch 60/120 | Train loss: 331.61614990234375 | Validation loss: 107.15283203125 | Time/epoch: 0.35907 seconds
+INFO:root:Epoch 80/120 | Train loss: 261.1725769042969 | Validation loss: 105.73088836669922 | Time/epoch: 0.36289 seconds
+INFO:root:Epoch 100/120 | Train loss: 204.3862762451172 | Validation loss: 114.3382797241211 | Time/epoch: 0.36488 seconds
+INFO:root:Epoch 120/120 | Train loss: 161.37001037597656 | Validation loss: 132.109375 | Time/epoch: 0.36012 seconds
+INFO:root:End of training. Total time: 44.73981 seconds
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>We can see overfitting in the last epochs. Let's ignore that and continue with the predictions</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<details class="description" open="">
+      <summary class="btn btn-sm" data-open="Hide Code" data-close="Show Code"></summary>
+        <p></p>
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#collapse-show</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">y_pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">X_test</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">))</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+    
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">X_test</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">y_test</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="s2">"."</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'y test'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">X_test</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">y_pred</span><span class="p">,</span> <span class="s2">"."</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Predicion'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">();</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+    </details>
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,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%0A">
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The trainer seems to work perfectly although...</p>
+<h2 id="Can-we-improve-it?">
+<a class="anchor" href="#Can-we-improve-it?" aria-hidden="true"><span class="octicon octicon-link"></span></a>Can we improve it?<a class="anchor-link" href="#Can-we-improve-it?"> </a>
+</h2>
+<p>Of course. It is a very primitive class right now. We can add functions to handle regulatization, lr scheduling, early stopping, etc</p>
+<p>Maybe I will complete these and other questions in another post.</p>
+<p>Thank you for reading!</p>
+<h2 id="References">
+<a class="anchor" href="#References" aria-hidden="true"><span class="octicon octicon-link"></span></a>References<a class="anchor-link" href="#References"> </a>
+</h2>
+<ol>
+<li>Afshine Amidi and Shervine Amidi - <a href="https://stanford.edu/~shervine/blog/pytorch-how-to-generate-data-parallel">A detailed example of how to generate your data in parallel with PyTorch</a>
+</li>
+</ol>
+
+</div>
+</div>
+</div>
+</div>
+
+
+
+  </div><!-- from https://github.com/utterance/utterances -->
+<script src="https://utteranc.es/client.js"
+        repo="Xylambda/blog"
+        issue-term="title"
+        label="blogpost-comment"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script><a class="u-url" href="/blog/python/pytorch/machine-learning/2021/01/04/pytorch_trainer.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>Data Science and other stuff blog</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/Xylambda" title="Xylambda"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#github"></use></svg></a></li><li><a rel="me" href="https://twitter.com/xylambda" title="xylambda"><svg class="svg-icon grey"><use xlink:href="/blog/assets/minima-social-icons.svg#twitter"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
