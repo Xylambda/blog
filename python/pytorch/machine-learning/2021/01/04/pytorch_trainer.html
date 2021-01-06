@@ -111,7 +111,7 @@ window.onload = wrap_img;
        • <span class="read-time" title="Estimated read time">
     
     
-      7 min read
+      8 min read
     
 </span></p>
 
@@ -163,6 +163,7 @@ window.onload = wrap_img;
 <li class="toc-entry toc-h2"><a href="#The-code">The code </a></li>
 <li class="toc-entry toc-h2"><a href="#Example-of-use">Example of use </a></li>
 <li class="toc-entry toc-h2"><a href="#Can-we-improve-it?">Can we improve it? </a></li>
+<li class="toc-entry toc-h2"><a href="#Conclusion">Conclusion </a></li>
 <li class="toc-entry toc-h2"><a href="#References">References </a></li>
 </ul><!--
 #################################################
@@ -197,7 +198,7 @@ window.onload = wrap_img;
 <h2 id="What-is-wrong-with-PyTorch?">
 <a class="anchor" href="#What-is-wrong-with-PyTorch?" aria-hidden="true"><span class="octicon octicon-link"></span></a>What is wrong with PyTorch?<a class="anchor-link" href="#What-is-wrong-with-PyTorch?"> </a>
 </h2>
-<p>Nothing really, you just have to build the training loop by calling specific built-in routines in the right order, unlike in Keras where you just have to call <code>fit</code> method to optimize your models. That is why it can be a little confused and the beginning and definitely time-consuming.</p>
+<p>Nothing really, you just have to build the training loop by calling specific built-in routines in the right order, unlike in Keras where you just have to call <code>fit</code> method to optimize your models. That is why it can be a little confusing and the beginning and definitely time-consuming.</p>
 <h2 id="What-are-we-going-to-build?">
 <a class="anchor" href="#What-are-we-going-to-build?" aria-hidden="true"><span class="octicon octicon-link"></span></a>What are we going to build?<a class="anchor-link" href="#What-are-we-going-to-build?"> </a>
 </h2>
@@ -277,8 +278,6 @@ window.onload = wrap_img;
 
             <span class="c1"># validate</span>
             <span class="n">val_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate</span><span class="p">(</span><span class="n">val_loader</span><span class="p">)</span>
-
-        <span class="c1"># log finished process</span>
 </pre></div>
 <p>Now we need to create the <code>_train</code> and <code>_validate</code> functions. The train implements the optimization algorithm we saw at the beginning of the post. The validation is not used to optimize, so we do not need to compute the gradients. Fortunatelly, PyTorch provides with a primitive to prevent this to happen: <code>torch.no_grad()</code></p>
 <div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Trainer</span><span class="p">:</span>
@@ -316,6 +315,7 @@ window.onload = wrap_img;
 
         <span class="k">return</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 </pre></div>
+<p>We return <code>loss.item()</code> to get the loss value and not the entire graph.</p>
 <p>Lastly, I created a separate function to compute loss because:</p>
 <ul>
 <li>Sometimes, the target needs to be casted to long dtype and I wanted the Trainer the handle it.</li>
@@ -638,7 +638,7 @@ window.onload = wrap_img;
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#collapse</span>
 
-<span class="c1"># to avoid error</span>
+<span class="c1"># to avoid errors</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="c1"># two splits to get train, test and validation datasets</span>
@@ -844,12 +844,15 @@ INFO:root:End of training. Total time: 44.73981 seconds
 <div class="cell border-box-sizing text_cell rendered">
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The trainer seems to work perfectly although...</p>
+<p>The trainer seems to work perfectly.</p>
 <h2 id="Can-we-improve-it?">
 <a class="anchor" href="#Can-we-improve-it?" aria-hidden="true"><span class="octicon octicon-link"></span></a>Can we improve it?<a class="anchor-link" href="#Can-we-improve-it?"> </a>
 </h2>
-<p>Of course. It is a very primitive class right now. We can add functions to handle regulatization, lr scheduling, early stopping, etc</p>
-<p>Maybe I will complete these and other questions in another post.</p>
+<p>Of course. It is a very primitive class right now. We can add functions to handle regulatization, lr scheduling, early stopping, etc. You are free to use this code for your own purposes.</p>
+<h2 id="Conclusion">
+<a class="anchor" href="#Conclusion" aria-hidden="true"><span class="octicon octicon-link"></span></a>Conclusion<a class="anchor-link" href="#Conclusion"> </a>
+</h2>
+<p>PyTorch is great framework, but it can be a little intimidating for DL newcomers. Although there are many great tools out there, being able to create your own training loop will help you better understand the basics of the framework.</p>
 <p>Thank you for reading!</p>
 <h2 id="References">
 <a class="anchor" href="#References" aria-hidden="true"><span class="octicon octicon-link"></span></a>References<a class="anchor-link" href="#References"> </a>
