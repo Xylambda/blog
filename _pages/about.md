@@ -10,14 +10,15 @@ researcher, developing mathematical models to understand the FX market.
 
 ### What did you study?
 My academic background includes a Bachelor of Science in Computer Science and a 
-Big Data minor. The latter as a result of my stay abroad in Netherlands.
+Big Data minor. The latter as a result of my stay abroad in Netherlands. In addition,
+I am currently studying a Master's degree in Artificial Intelligence.
 
 ### I want to know you
 I like films and music. I mean, I REALLY like films and music. I play piano 
 and guitar in my free time and I recorded some homemade films (that will never 
 see the light) with my friends. 
 
-I also like to read fantasy books and travelling. I'm also interested in 
+Besides, I like to read fantasy books and travelling and I'm also interested in 
 politics and science in general.
 
 ### I want to contact you
