@@ -154,8 +154,12 @@ window.onload = wrap_img;
   <div class="post-content e-content" itemprop="articleBody">
     <ul class="section-nav">
 <li class="toc-entry toc-h2"><a href="#Introduction">Introduction </a></li>
-<li class="toc-entry toc-h2"><a href="#USDIDX">USDIDX </a></li>
-<li class="toc-entry toc-h2"><a href="#Trade-weighted-U.S.-dollar-index">Trade weighted U.S. dollar index </a></li>
+<li class="toc-entry toc-h2"><a href="#Dollar-indices">Dollar indices </a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#USDIDX">USDIDX </a></li>
+<li class="toc-entry toc-h3"><a href="#Trade-weighted-U.S.-dollar-index">Trade weighted U.S. dollar index </a></li>
+</ul>
+</li>
 <li class="toc-entry toc-h2"><a href="#Constructing-dollar-indices-in-Python">Constructing dollar indices in Python </a>
 <ul>
 <li class="toc-entry toc-h3"><a href="#US-dollar-index">US dollar index </a></li>
@@ -215,9 +219,12 @@ window.onload = wrap_img;
 </h2>
 <p>In order to track the strength of the dollar, different organizations have developed different techniques to create their own dollar indexes. In this post we are going to see 2 methodologies to construct dollar indexes plus an extra one with PCA, though we will not discuss the results (at least in this post).</p>
 <p>The most common way of constructing an index is by weighting the currency to track against a set of ponderated currencies. The currencies basket, the way weights are chosen and how we aggregate the different ponderated currencies define how we construct an index.</p>
-<h2 id="USDIDX">
-<a class="anchor" href="#USDIDX" aria-hidden="true"><span class="octicon octicon-link"></span></a>USDIDX<a class="anchor-link" href="#USDIDX"> </a>
+<h2 id="Dollar-indices">
+<a class="anchor" href="#Dollar-indices" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dollar indices<a class="anchor-link" href="#Dollar-indices"> </a>
 </h2>
+<h3 id="USDIDX">
+<a class="anchor" href="#USDIDX" aria-hidden="true"><span class="octicon octicon-link"></span></a>USDIDX<a class="anchor-link" href="#USDIDX"> </a>
+</h3>
 <p>The dollar index is an index that measures the U.S. dollar value. It is built using a geometric mean of the following currencies with their respective weights:</p>
 <ul>
 <li>
@@ -234,9 +241,9 @@ window.onload = wrap_img;
 <strong>Swiss franc (CHF):</strong> 3.6 % weight.</li>
 </ul>
 <p>In the case of the main U.S. dollar index the weights remain static, which does not allow the index to capture well some market conditions. Furthermore, we see the Swedish Krona taking a relatively high weight, which is certainly outdated in the current market context.</p>
-<h2 id="Trade-weighted-U.S.-dollar-index">
+<h3 id="Trade-weighted-U.S.-dollar-index">
 <a class="anchor" href="#Trade-weighted-U.S.-dollar-index" aria-hidden="true"><span class="octicon octicon-link"></span></a>Trade weighted U.S. dollar index<a class="anchor-link" href="#Trade-weighted-U.S.-dollar-index"> </a>
-</h2>
+</h3>
 <p>In 1998, the staff of the Federal Reserve Board introduced a new set of indices, among which was the trade weighted dollar index.</p>
 <p>Although the dollar index is not well suited to capture rapid market movements (among other things), the trade weighted U.S. dollar index is not designed to fix this issue but to measure the strenght of the U.S. economy with respect to its trading partners.</p>
 <p>According to Loretan [1], the Federal Reserve Board's nominal dollar index at time $t$ can be defined as
@@ -251,7 +258,7 @@ $$</p>
 <li>$N(t)$ is the number of foreign currencies in the index at time $t$.</li>
 <li>$\sum_{j}w_{j,t} = 1$. </li>
 </ul>
-<p>Notice how the index is computed using a geometric weighted average. As Loretan explains in <a href="http://localhost:8888/notebooks/Git/blog/_notebooks/2021-06-27-dollar-index.ipynb#References">1</a>, this is done because geometric averaging forces proportionately equal appreciation and depreciation of currencies to have the same numerical effect.</p>
+<p>Notice how the index is computed using a geometric weighted average. As Loretan explains in [1], this is done because geometric averaging forces proportionately equal appreciation and depreciation of currencies to have the same numerical effect.</p>
 <p>The weights $w_{j,t}$ are computed as</p>
 $$
 w_{j,t} = \frac{1}{2} \mu_{US,j,t} + \frac{1}{2} \left( \frac{1}{2} \epsilon_{US, j,t} + \frac{1}{2} \tau_{US,jt} \right)
@@ -269,13 +276,6 @@ $$<p>which is nothing more than a linear combination of three submeasures of the
 </li>
 </ul>
 <p>Fortunately for us, we don't have to manually compute the weights since they can be found at the Federal Reserve Board [4].</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Constructing-dollar-indices-in-Python">
 <a class="anchor" href="#Constructing-dollar-indices-in-Python" aria-hidden="true"><span class="octicon octicon-link"></span></a>Constructing dollar indices in Python<a class="anchor-link" href="#Constructing-dollar-indices-in-Python"> </a>
 </h2>
