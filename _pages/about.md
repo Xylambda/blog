@@ -10,8 +10,8 @@ researcher, developing mathematical models to understand the FX market.
 
 ### What did you study?
 My academic background includes a Bachelor of Science in Computer Science and a 
-Big Data minor. The latter as a result of my stay abroad in Netherlands. In addition,
-I am currently studying a Master's degree in Artificial Intelligence.
+Big Data minor, the latter as a result of my stay abroad in Netherlands. In 
+addition, I am currently studying a Master's degree in Artificial Intelligence.
 
 ### I want to know you
 I like films and music. I mean, I REALLY like films and music. I play piano 
@@ -23,6 +23,9 @@ politics and science in general.
 
 ### I want to contact you
 You can contact me using the email I have on my GitHub web profile.
+
+### Can I get your CV?
+Yes, you can download it [here](../assets/resume.pdf)
 
 ### How did you make this site?
 This site is built with [fastpages](https://github.com/fastai/fastpages), an 
