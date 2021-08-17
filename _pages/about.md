@@ -25,7 +25,7 @@ politics and science in general.
 You can contact me using the email I have on my GitHub web profile.
 
 ### Can I get your CV?
-Yes, you can download it [here](../assets/resume.pdf)
+Yes, you can download it [here](../assets/resume.pdf).
 
 ### How did you make this site?
 This site is built with [fastpages](https://github.com/fastai/fastpages), an 
