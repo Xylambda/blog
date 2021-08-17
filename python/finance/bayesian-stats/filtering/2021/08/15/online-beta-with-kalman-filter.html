@@ -218,13 +218,14 @@ window.onload = wrap_img;
 <h2 id="Brief-review">
 <a class="anchor" href="#Brief-review" aria-hidden="true"><span class="octicon octicon-link"></span></a>Brief review<a class="anchor-link" href="#Brief-review"> </a>
 </h2>
-<p>The Kalman assumes a dynamic linear system given by two equations</p>
+<p>The Kalman assumes a dynamic linear system given by two equations
 $$
 \begin{matrix}
 x_{k} = A_{k} x_{k} + B u_{k} + q_{k} \\
 z_{k} = H_{k} x_{k} + r_{k}
 \end{matrix}
-$$<p>The first equation determines the expression that gives the true state of the system. The second equation tells us that any observation $z$ at time $k$ can be expressed as a linear combination of the state $x_{k}$ using the observation model $H_{k}$ plus some noise $r_{k}$.</p>
+$$</p>
+<p>The first equation determines the expression that gives the true state of the system. The second equation tells us that any observation $z$ at time $k$ can be expressed as a linear combination of the state $x_{k}$ using the observation model $H_{k}$ plus some noise $r_{k}$.</p>
 <p>The Kalman Filter estimates the true estate using a feedback control-loop of 2 stages: predict and update.</p>
 <ol>
 <li>
@@ -262,7 +263,7 @@ $$</p>
 <p>if we include the constant variable 1 in $X$, include $\hat{\beta}_{0}$ in the vector of coefficients $\hat{\beta}$ and then write the linear model in vector form as an inner product, where $X^{T}$ denotes vector or matrix transpose ($X$ is a column vector) [5].</p>
 <p>For two dimensions, we can express the above formula as
 $$
-\hat{Y} = = (1, x_{j})\begin{pmatrix} \hat{\beta}_{0} \\ \hat{\beta}_{1} \end{pmatrix}
+\hat{Y} = (1, x_{j})\begin{pmatrix} \hat{\beta}_{0} \\ \hat{\beta}_{1} \end{pmatrix}
 $$</p>
 <p>The equation above is similar to the observation equation of the Kalman Filter $z_{k} = H_{k} x_{k} + r_{k}$ and so we can write the following expression
 $$
