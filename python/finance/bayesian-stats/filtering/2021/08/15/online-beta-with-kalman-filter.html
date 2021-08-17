@@ -16,7 +16,7 @@
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2021-08-15T00:00:00-05:00" />
 <script type="application/ld+json">
-{"author":{"@type":"Person","name":"Alejandro PS"},"headline":"Online beta estimation with the Kalman Filter","description":"In this post we briefly review the Kalman Filter and we use it to compute the beta between 2 stock returns using Python, though the procedure can also be used in many other fields with an appropiate translation.","datePublished":"2021-08-15T00:00:00-05:00","dateModified":"2021-08-15T00:00:00-05:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://xylambda.github.io/blog/python/finance/bayesian-stats/filtering/2021/08/15/online-beta-with-kalman-filter.html"},"url":"https://xylambda.github.io/blog/python/finance/bayesian-stats/filtering/2021/08/15/online-beta-with-kalman-filter.html","@context":"https://schema.org"}</script>
+{"author":{"@type":"Person","name":"Alejandro PS"},"headline":"Online beta estimation with the Kalman Filter","dateModified":"2021-08-15T00:00:00-05:00","description":"In this post we briefly review the Kalman Filter and we use it to compute the beta between 2 stock returns using Python, though the procedure can also be used in many other fields with an appropiate translation.","datePublished":"2021-08-15T00:00:00-05:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://xylambda.github.io/blog/python/finance/bayesian-stats/filtering/2021/08/15/online-beta-with-kalman-filter.html"},"url":"https://xylambda.github.io/blog/python/finance/bayesian-stats/filtering/2021/08/15/online-beta-with-kalman-filter.html","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://xylambda.github.io/blog/feed.xml" title="Alejandro PS" /><link rel="shortcut icon" type="image/x-icon" href="/blog/images/favicon.ico"><!-- Begin Jekyll SEO tag v2.6.1 -->
 <title>Online beta estimation with the Kalman Filter | Alejandro PS</title>
@@ -32,7 +32,7 @@
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2021-08-15T00:00:00-05:00" />
 <script type="application/ld+json">
-{"author":{"@type":"Person","name":"Alejandro PS"},"headline":"Online beta estimation with the Kalman Filter","description":"In this post we briefly review the Kalman Filter and we use it to compute the beta between 2 stock returns using Python, though the procedure can also be used in many other fields with an appropiate translation.","datePublished":"2021-08-15T00:00:00-05:00","dateModified":"2021-08-15T00:00:00-05:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://xylambda.github.io/blog/python/finance/bayesian-stats/filtering/2021/08/15/online-beta-with-kalman-filter.html"},"url":"https://xylambda.github.io/blog/python/finance/bayesian-stats/filtering/2021/08/15/online-beta-with-kalman-filter.html","@context":"https://schema.org"}</script>
+{"author":{"@type":"Person","name":"Alejandro PS"},"headline":"Online beta estimation with the Kalman Filter","dateModified":"2021-08-15T00:00:00-05:00","description":"In this post we briefly review the Kalman Filter and we use it to compute the beta between 2 stock returns using Python, though the procedure can also be used in many other fields with an appropiate translation.","datePublished":"2021-08-15T00:00:00-05:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://xylambda.github.io/blog/python/finance/bayesian-stats/filtering/2021/08/15/online-beta-with-kalman-filter.html"},"url":"https://xylambda.github.io/blog/python/finance/bayesian-stats/filtering/2021/08/15/online-beta-with-kalman-filter.html","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 <link href="https://unpkg.com/@primer/css/dist/primer.css" rel="stylesheet" />
@@ -224,26 +224,28 @@ $$
 x_{k} = A_{k} x_{k} + B u_{k} + q_{k} \\
 z_{k} = H_{k} x_{k} + r_{k}
 \end{matrix}
-$$<p>The first equation determines the expression that gives the true state of the system. The second equation tells us that any observation $z$ at time $k$ can be expressed as a linear combination of the state $x_{k}$ using $H_{k}$ plus some noise $r_{k}$.</p>
+$$<p>The first equation determines the expression that gives the true state of the system. The second equation tells us that any observation $z$ at time $k$ can be expressed as a linear combination of the state $x_{k}$ using the observation model $H_{k}$ plus some noise $r_{k}$.</p>
 <p>The Kalman Filter estimates the true estate using a feedback control-loop of 2 stages: predict and update.</p>
 <ol>
-<li><strong>Predict step</strong></li>
-</ol>
+<li>
+<p><strong>Predict step</strong>
 $$
 \begin{matrix}
 \hat{x}_{k}^{-} = A_{k} \hat{x}_{k-1}^{-} + B_{k} u_{k-1} \\
 P_{k}^{-} = A_{k}P_{k-1}A_{k}^{T} + Q_{k}
 \end{matrix}
-$$<ol>
+$$</p>
+</li>
 <li>
-<strong>Update step</strong>
+<p><strong>Update step</strong>
 $$
 \begin{matrix}
 K_k = P_{k}^{-} H_{k}^{T} (H_{k} P_{k}^{-} H_{k}^{T} + R_{k})^{-1} \\
 \hat{x}_{k} = \hat{x}_{k}^{-} + K_k (z_k - H_{k} \hat{x}_{k}^{-}) \\
 P_k = (I - K_k H) P_{k}^{-}
 \end{matrix}
-$$</li>
+$$</p>
+</li>
 </ol>
 <p>We won't cover the mathematical derivation of the filter since it is very complex and it would only add useless noise to the post, but you can read it at [3] and [4].</p>
 <h2 id="Linear-regression-&amp;-Kalman-filtering">
@@ -255,13 +257,18 @@ $$
 $$</p>
 <p>which is equivalent to 
 $$
-\hat{Y} = X^{T} \hat{\beta} = (1, x_{j})\begin{pmatrix} \hat{\beta}_{0} \\ \hat{\beta}_{1} \end{pmatrix}
+\hat{Y} = X^{T} \hat{\beta}
 $$</p>
 <p>if we include the constant variable 1 in $X$, include $\hat{\beta}_{0}$ in the vector of coefficients $\hat{\beta}$ and then write the linear model in vector form as an inner product, where $X^{T}$ denotes vector or matrix transpose ($X$ is a column vector) [5].</p>
-<p>The equation above is similar to the observation equation of the Kalman Filter $z_{k} = H_{k} x_{k} + r_{k}$ and so we can write the following expression as</p>
+<p>For two dimensions, we can express the above formula as
+$$
+\hat{Y} = = (1, x_{j})\begin{pmatrix} \hat{\beta}_{0} \\ \hat{\beta}_{1} \end{pmatrix}
+$$</p>
+<p>The equation above is similar to the observation equation of the Kalman Filter $z_{k} = H_{k} x_{k} + r_{k}$ and so we can write the following expression
 $$
 z_{k} = (1, H_{k})\begin{pmatrix} x_{k,0} \\ x_{k,1} \end{pmatrix} + r_{k}
-$$<p>This is telling us that we can plug one stock in the $z_{k}$ and the other in the $H_{k}$ to compute a dynamic beta between both stocks where $x_{k,0}$ would be our alpha and $x_{k,1}$ our beta.</p>
+$$</p>
+<p>This is telling us that we can plug one stock in the $z_{k}$ and the other in the $H_{k}$ to compute a dynamic beta between both stocks. $x_{k,0}$ would be our alpha and $x_{k,1}$ our beta.</p>
 <h2 id="The-code">
 <a class="anchor" href="#The-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>The code<a class="anchor-link" href="#The-code"> </a>
 </h2>
@@ -725,7 +732,7 @@ $$<p>This is telling us that we can plug one stock in the $z_{k}$ and the other 
 <div class="cell border-box-sizing text_cell rendered">
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The dynamic beta and alpha provide a linear regression that adapts dynamically each time step. The regression line we created earlier is provided in <strong>red</strong> to compare.</p>
+<p>The dynamic beta and alpha provide a linear regression that adapts dynamically each time step. The regression line we created earlier is provided in <strong>red</strong> to compare. This looks much better!</p>
 <h2 id="Conclusion">
 <a class="anchor" href="#Conclusion" aria-hidden="true"><span class="octicon octicon-link"></span></a>Conclusion<a class="anchor-link" href="#Conclusion"> </a>
 </h2>
