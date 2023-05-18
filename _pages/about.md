@@ -11,7 +11,7 @@ researcher, developing mathematical models to understand the FX market.
 ### What did you study?
 My academic background includes a Bachelor of Science in Computer Science and a 
 Big Data minor, the latter as a result of my stay abroad in Netherlands. In 
-addition, I am currently studying a Master's degree in Artificial Intelligence.
+addition, I also have a Master's degree in Artificial Intelligence.
 
 ### I want to know you
 I like films and music. I mean, I REALLY like films and music. I play piano 
